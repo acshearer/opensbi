@@ -17,30 +17,37 @@
 #include <sbi_utils/serial/uart8250.h>
 #include <sbi_utils/sys/clint.h>
 
-#define PLATFORM_PLIC_ADDR		0xc000000
-#define PLATFORM_PLIC_NUM_SOURCES	128
-#define PLATFORM_HART_COUNT		4
-#define PLATFORM_CLINT_ADDR		0x2000000
-#define PLATFORM_UART_ADDR		0x09000000
-#define PLATFORM_UART_INPUT_FREQ	10000000
-#define PLATFORM_UART_BAUDRATE		115200
+#include "saber_tv.h"
+
+
+
+#define SABER_PLIC_ADDR            0x20000000
+#define SABER_TV_ADDR              0x10003000
+#define SABER_CLINT_ADDR           0x10004000
+#define SABER_UART_ADDR            0x10005000
+
+#define SABER_PLIC_NUM_SOURCES     3
+#define SABER_HART_COUNT           1
+
+#define SABER_UART_INPUT_FREQ      10000000
+#define SABER_UART_BAUDRATE        115200
 
 static struct plic_data plic = {
-  .addr = PLATFORM_PLIC_ADDR,
-  .num_src = PLATFORM_PLIC_NUM_SOURCES,
+  .addr = SABER_PLIC_ADDR,
+  .num_src = SABER_PLIC_NUM_SOURCES,
 };
 
 static struct clint_data clint = {
-  .addr = PLATFORM_CLINT_ADDR,
+  .addr = SABER_CLINT_ADDR,
   .first_hartid = 0,
-  .hart_count = PLATFORM_HART_COUNT,
-  .has_64bit_mmio = TRUE,
+  .hart_count = SABER_HART_COUNT,
+  .has_64bit_mmio = FALSE,
 };
 
 /*
  * Platform early initialization.
  */
-static int platform_early_init(bool cold_boot)
+static int saber_early_init(bool cold_boot)
 {
   return 0;
 }
@@ -48,42 +55,48 @@ static int platform_early_init(bool cold_boot)
 /*
  * Platform final initialization.
  */
-static int platform_final_init(bool cold_boot)
+static int saber_final_init(bool cold_boot)
 {
   return 0;
 }
 
 /*
- * Initialize the platform console.
+ * Initialize the saber console.
  */
-static int platform_console_init(void)
+static int saber_console_init(void)
 {
+  saber_TV_init(SABER_TV_ADDR);
+  return 0;
+
   /* Example if the generic UART8250 driver is used */
-  return uart8250_init(PLATFORM_UART_ADDR, PLATFORM_UART_INPUT_FREQ,
-		       PLATFORM_UART_BAUDRATE, 0, 1);
+  // return uart8250_init(SABER_UART_ADDR, SABER_UART_INPUT_FREQ,
+    //            SABER_UART_BAUDRATE, 0, 1);
 }
 
 /*
- * Write a character to the platform console output.
+ * Write a character to the saber console output.
  */
-static void platform_console_putc(char ch)
+static void saber_console_putc(char ch)
 {
+  saber_TV_putChar(ch);
+
   /* Example if the generic UART8250 driver is used */
-  uart8250_putc(ch);
+  // uart8250_putc(ch);
 }
 
 /*
- * Read a character from the platform console input.
+ * Read a character from the saber console input.
  */
-static int platform_console_getc(void)
+static int saber_console_getc(void)
 {
-  return uart8250_getc();
+  // return uart8250_getc();
+  return 0;
 }
 
 /*
- * Initialize the platform interrupt controller for current HART.
+ * Initialize the saber interrupt controller for current HART.
  */
-static int platform_irqchip_init(bool cold_boot)
+static int saber_irqchip_init(bool cold_boot)
 {
   u32 hartid = current_hartid();
   int ret;
@@ -101,7 +114,7 @@ static int platform_irqchip_init(bool cold_boot)
 /*
  * Initialize IPI for current HART.
  */
-static int platform_ipi_init(bool cold_boot)
+static int saber_ipi_init(bool cold_boot)
 {
   int ret;
 
@@ -118,7 +131,7 @@ static int platform_ipi_init(bool cold_boot)
 /*
  * Send IPI to a target HART
  */
-static void platform_ipi_send(u32 target_hart)
+static void saber_ipi_send(u32 target_hart)
 {
   /* Example if the generic CLINT driver is used */
   clint_ipi_send(target_hart);
@@ -127,16 +140,16 @@ static void platform_ipi_send(u32 target_hart)
 /*
  * Clear IPI for a target HART.
  */
-static void platform_ipi_clear(u32 target_hart)
+static void saber_ipi_clear(u32 target_hart)
 {
   /* Example if the generic CLINT driver is used */
   clint_ipi_clear(target_hart);
 }
 
 /*
- * Initialize platform timer for current HART.
+ * Initialize saber timer for current HART.
  */
-static int platform_timer_init(bool cold_boot)
+static int saber_timer_init(bool cold_boot)
 {
   int ret;
 
@@ -151,36 +164,36 @@ static int platform_timer_init(bool cold_boot)
 }
 
 /*
- * Get platform timer value.
+ * Get saber timer value.
  */
-static u64 platform_timer_value(void)
+static u64 saber_timer_value(void)
 {
   /* Example if the generic CLINT driver is used */
   return clint_timer_value();
 }
 
 /*
- * Start platform timer event for current HART.
+ * Start saber timer event for current HART.
  */
-static void platform_timer_event_start(u64 next_event)
+static void saber_timer_event_start(u64 next_event)
 {
   /* Example if the generic CLINT driver is used */
   clint_timer_event_start(next_event);
 }
 
 /*
- * Stop platform timer event for current HART.
+ * Stop saber timer event for current HART.
  */
-static void platform_timer_event_stop(void)
+static void saber_timer_event_stop(void)
 {
   /* Example if the generic CLINT driver is used */
   clint_timer_event_stop();
 }
 
 /*
- * Reset the platform.
+ * Reset the saber.
  */
-static int platform_system_reset(u32 type)
+static int saber_system_reset(u32 type)
 {
   return 0;
 }
@@ -189,27 +202,28 @@ static int platform_system_reset(u32 type)
  * Platform descriptor.
  */
 const struct sbi_platform_operations platform_ops = {
-  .early_init		= platform_early_init,
-  .final_init		= platform_final_init,
-  .console_putc		= platform_console_putc,
-  .console_getc		= platform_console_getc,
-  .console_init		= platform_console_init,
-  .irqchip_init		= platform_irqchip_init,
-  .ipi_send		= platform_ipi_send,
-  .ipi_clear		= platform_ipi_clear,
-  .ipi_init		= platform_ipi_init,
-  .timer_value		= platform_timer_value,
-  .timer_event_stop	= platform_timer_event_stop,
-  .timer_event_start	= platform_timer_event_start,
-  .timer_init		= platform_timer_init,
-  .system_reset		= platform_system_reset
+  .early_init            = saber_early_init,
+  .final_init            = saber_final_init,
+  .console_putc          = saber_console_putc,
+  .console_getc          = saber_console_getc,
+  .console_init          = saber_console_init,
+  .irqchip_init          = saber_irqchip_init,
+  .ipi_send              = saber_ipi_send,
+  .ipi_clear             = saber_ipi_clear,
+  .ipi_init              = saber_ipi_init,
+  .timer_value           = saber_timer_value,
+  .timer_event_stop      = saber_timer_event_stop,
+  .timer_event_start     = saber_timer_event_start,
+  .timer_init            = saber_timer_init,
+  .system_reset          = saber_system_reset
 };
+
 const struct sbi_platform platform = {
-  .opensbi_version	= OPENSBI_VERSION,
-  .platform_version	= SBI_PLATFORM_VERSION(0x0, 0x00),
-  .name			= "platform-name",
-  .features		= SBI_PLATFORM_DEFAULT_FEATURES,
-  .hart_count		= 1,
-  .hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
-  .platform_ops_addr	= (unsigned long)&platform_ops
+  .opensbi_version       = OPENSBI_VERSION,
+  .platform_version      = SBI_PLATFORM_VERSION(0x0, 0x00),
+  .name                  = "saber",
+  .features              = SBI_PLATFORM_DEFAULT_FEATURES,
+  .hart_count            = 1,
+  .hart_stack_size       = SBI_PLATFORM_DEFAULT_HART_STACK_SIZE,
+  .platform_ops_addr     = (unsigned long)&platform_ops
 };
