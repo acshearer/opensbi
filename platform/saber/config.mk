@@ -26,9 +26,9 @@ platform-ldflags-y =
 # These are optional parameters but platforms can optionaly provide it.
 # Some of these are guessed based on GCC compiler capabilities
 #
-# PLATFORM_RISCV_XLEN = 64
-# PLATFORM_RISCV_ABI = lp64
-# PLATFORM_RISCV_ISA = rv64imafdc
+PLATFORM_RISCV_XLEN = 32
+PLATFORM_RISCV_ABI = ilp32
+PLATFORM_RISCV_ISA = rv32ia
 # PLATFORM_RISCV_CODE_MODEL = medany
 
 # Firmware load address configuration. This is mandatory.
@@ -61,7 +61,7 @@ FW_JUMP=<y|n>
 # Optional parameters are commented out. Uncomment and define these parameters
 # as needed.
 #
-FW_PAYLOAD=<y|n>
+FW_PAYLOAD=y
 # This needs to be 4MB aligned for 32-bit support
 # This needs to be 2MB aligned for 64-bit support
 ifeq ($(PLATFORM_RISCV_XLEN), 32)
