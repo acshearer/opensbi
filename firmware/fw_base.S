@@ -16,6 +16,22 @@
 #define BOOT_STATUS_RELOCATE_DONE	1
 #define BOOT_STATUS_BOOT_HART_DONE	2
 
+.macro MULTIPLY __d, __s0, __s1, __t
+#ifdef __riscv_mul
+	mul __d, __s0, __s1
+#else
+	mv \__t, \__s1
+	li \__d, 0
+	100:
+	beqz \__s1, 100f
+	add \__d, \__d, \__s0
+	addi \__s1, \__s1, -1
+	j 100b
+	100:
+	mv \__s1, \__t
+#endif
+.endm
+
 .macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
 	add	\__d0, \__s0, zero
 	add	\__d1, \__s1, zero
@@ -217,7 +233,7 @@ _prev_arg1_override_done:
 
 	/* Setup scratch space for all the HARTs*/
 	la	tp, _fw_end
-	mul	a5, s7, s8
+	MULTIPLY a5, s7, s8, t6
 	add	tp, tp, a5
 	/* Keep a copy of tp */
 	add	t3, tp, zero
@@ -227,7 +243,7 @@ _prev_arg1_override_done:
 	li	t1, 0
 _scratch_init:
 	add	tp, t3, zero
-	mul	a5, s8, t1
+	MULTIPLY a5, s8, t1, t6
 	sub	tp, tp, a5
 	li	a5, SBI_SCRATCH_SIZE
 	sub	tp, tp, a5
@@ -236,7 +252,7 @@ _scratch_init:
 	/* Store fw_start and fw_size in scratch space */
 	la	a4, _fw_start
 	la	a5, _fw_end
-	mul	t0, s7, s8
+	MULTIPLY t0, s7, s8, t6
 	add	a5, a5, t0
 	sub	a5, a5, a4
 	REG_S	a4, SBI_SCRATCH_FW_START_OFFSET(tp)
@@ -402,9 +418,9 @@ _start_warm:
 
 	/* Find the scratch space based on HART index */
 	la	tp, _fw_end
-	mul	a5, s7, s8
+	MULTIPLY a5, s7, s8, t6
 	add	tp, tp, a5
-	mul	a5, s8, s6
+	MULTIPLY a5, s8, s6, t6
 	sub	tp, tp, a5
 	li	a5, SBI_SCRATCH_SIZE
 	sub	tp, tp, a5
@@ -458,7 +474,7 @@ _hartid_to_scratch:
 	lw	t2, SBI_PLATFORM_HART_COUNT_OFFSET(t2)
 #endif
 	sub	t2, t2, a1
-	mul	t2, t2, t0
+	MULTIPLY t2, t2, t0, t6
 	la	t1, _fw_end
 	add	t1, t1, t2
 	li	t2, SBI_SCRATCH_SIZE
