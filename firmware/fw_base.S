@@ -233,7 +233,7 @@ _prev_arg1_override_done:
 
 	/* Setup scratch space for all the HARTs*/
 	la	tp, _fw_end
-	MULTIPLY a5, s7, s8, t6
+	MULTIPLY a5, s8, s7, t6
 	add	tp, tp, a5
 	/* Keep a copy of tp */
 	add	t3, tp, zero
@@ -252,7 +252,7 @@ _scratch_init:
 	/* Store fw_start and fw_size in scratch space */
 	la	a4, _fw_start
 	la	a5, _fw_end
-	MULTIPLY t0, s7, s8, t6
+	MULTIPLY t0, s8, s7, t6
 	add	a5, a5, t0
 	sub	a5, a5, a4
 	REG_S	a4, SBI_SCRATCH_FW_START_OFFSET(tp)
