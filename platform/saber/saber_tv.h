@@ -24,10 +24,18 @@ static void saber_TV_init(u32 address)
 
 static void saber_TV_putChar(char c)
 {
-  if (c == '\n') {
-    *saber_tv_cmd = TV_COMMAND_NEW_LINE;
-  } else {
-    *saber_tv_data = (u8)c;
-    *saber_tv_cmd = TV_COMMAND_PUT_CHAR;
+  switch(c){
+    case '\n': {
+      *saber_tv_cmd = TV_COMMAND_NEW_LINE;
+      break;
+    }
+
+    case '\r': break;
+
+    default: {
+      *saber_tv_data = (u8)c;
+      *saber_tv_cmd = TV_COMMAND_PUT_CHAR;
+      break;
+    }
   }
 }
