@@ -82,12 +82,14 @@ CPP		=	$(CROSS_COMPILE)cpp
 AR		=	$(CROSS_COMPILE)ar
 LD		=	$(CROSS_COMPILE)ld
 OBJCOPY		=	$(CROSS_COMPILE)objcopy
+OBJDUMP		=	$(CROSS_COMPILE)objdump
 else
 CC		?=	gcc
 CPP		?=	cpp
 AR		?=	ar
 LD		?=	ld
 OBJCOPY		?=	objcopy
+OBJDUMP		?=	objdump
 endif
 AS		=	$(CC)
 DTC		=	dtc
@@ -286,6 +288,9 @@ compile_ar = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
 compile_objcopy = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
 	     echo " OBJCOPY   $(subst $(build_dir)/,,$(1))"; \
 	     $(OBJCOPY) -S -O binary $(2) $(1)
+compile_objdump = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
+	     echo " OBJDUMP   $(subst $(build_dir)/,,$(1))"; \
+	     $(OBJDUMP) -D $(2) > $(1)
 compile_dts = $(CMD_PREFIX)mkdir -p `dirname $(1)`; \
 	     echo " DTC       $(subst $(build_dir)/,,$(1))"; \
 	     $(CPP) $(DTSCPPFLAGS) $(2) | $(DTC) -O dtb -i `dirname $(2)` -o $(1)
@@ -302,6 +307,7 @@ ifdef PLATFORM
 targets-y += $(platform_build_dir)/lib/libplatsbi.a
 endif
 targets-y += $(firmware-bins-path-y)
+targets-y += $(firmware-bins-path-y:.bin=.objdump)
 
 # Default rule "make" should always be first rule
 .PHONY: all
@@ -312,6 +318,9 @@ all: $(targets-y)
 
 $(build_dir)/%.bin: $(build_dir)/%.elf
 	$(call compile_objcopy,$@,$<)
+
+$(build_dir)/%.objdump: $(build_dir)/%.elf
+	$(call compile_objdump,$@,$<)
 
 $(build_dir)/%.elf: $(build_dir)/%.o $(build_dir)/%.elf.ld $(platform_build_dir)/lib/libplatsbi.a
 	$(call compile_elf,$@,$@.ld,$< $(platform_build_dir)/lib/libplatsbi.a)
