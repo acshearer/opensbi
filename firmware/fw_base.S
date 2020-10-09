@@ -18,7 +18,7 @@
 
 .macro MULTIPLY __d, __s0, __s1, __t
 #ifdef __riscv_mul
-	mul __d, __s0, __s1
+	mul \__d, \__s0, \__s1
 #else
 	mv \__t, \__s1
 	li \__d, 0
@@ -31,6 +31,18 @@
 	mv \__s1, \__t
 #endif
 .endm
+
+// Used for when the destination register is the same as one of the inputs
+.macro MULTIPLY_MODIFY __d, __s0, __s1, __ts1, __td
+#ifdef __riscv_mul
+	mul \__d, \__s0, \__s1
+#else
+	MULTIPLY \__td, \__s0, \__s1, \__ts1
+	mv \__d, \__td
+#endif
+.endm
+
+
 
 .macro	MOV_3R __d0, __s0, __d1, __s1, __d2, __s2
 	add	\__d0, \__s0, zero
@@ -474,7 +486,7 @@ _hartid_to_scratch:
 	lw	t2, SBI_PLATFORM_HART_COUNT_OFFSET(t2)
 #endif
 	sub	t2, t2, a1
-	MULTIPLY t2, t2, t0, t6
+	MULTIPLY_MODIFY t2, t2, t0, t6, t5
 	la	t1, _fw_end
 	add	t1, t1, t2
 	li	t2, SBI_SCRATCH_SIZE
