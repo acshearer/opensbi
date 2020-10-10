@@ -1,4 +1,6 @@
 
+#ifndef _SABER_TV_H_
+#define _SABER_TV_H_
 
 #define TV_ADDR_VCR_OFFSET 0x0
 #define TV_ADDR_VDR_OFFSET 0x4
@@ -13,29 +15,25 @@
 #define TV_COMMAND_GET_X    0b00010100
 #define TV_COMMAND_GET_Y    0b00010101
 
-static u8* saber_tv_cmd;
-static u8* saber_tv_data;
-
-static void saber_TV_init(u32 address)
-{
-  saber_tv_cmd  = (u8*)(address + TV_ADDR_VCR_OFFSET);
-  saber_tv_data = (u8*)(address + TV_ADDR_VDR_OFFSET);
-}
+#define TV_VCR ((u8*)(SABER_TV_ADDR + TV_ADDR_VCR_OFFSET))
+#define TV_VDR ((u8*)(SABER_TV_ADDR + TV_ADDR_VDR_OFFSET))
 
 static void saber_TV_putChar(char c)
 {
   switch(c){
     case '\n': {
-      *saber_tv_cmd = TV_COMMAND_NEW_LINE;
+      *TV_VCR = TV_COMMAND_NEW_LINE;
       break;
     }
 
     case '\r': break;
 
     default: {
-      *saber_tv_data = (u8)c;
-      *saber_tv_cmd = TV_COMMAND_PUT_CHAR;
+      *TV_VDR = (u8)c;
+      *TV_VCR = TV_COMMAND_PUT_CHAR;
       break;
     }
   }
 }
+
+#endif

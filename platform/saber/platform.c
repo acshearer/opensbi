@@ -17,7 +17,6 @@
 #include <sbi_utils/serial/uart8250.h>
 #include <sbi_utils/sys/clint.h>
 
-#include "saber_tv.h"
 
 
 
@@ -25,6 +24,8 @@
 #define SABER_TV_ADDR              0x10003000
 #define SABER_CLINT_ADDR           0x10004000
 #define SABER_UART_ADDR            0x10005000
+
+#include "saber_tv.h"
 
 #define SABER_PLIC_NUM_SOURCES     3
 #define SABER_HART_COUNT           1
@@ -65,7 +66,6 @@ static int saber_final_init(bool cold_boot)
  */
 static int saber_console_init(void)
 {
-  saber_TV_init(SABER_TV_ADDR);
   return 0;
 
   /* Example if the generic UART8250 driver is used */
