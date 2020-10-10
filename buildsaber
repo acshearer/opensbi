@@ -1,0 +1,4 @@
+#/usr/bin/env sh
+export CROSS_COMPILE=$RISCV_LINUX_TOOLCHAIN
+export PLATFORM_RISCV_XLEN=32
+make PLATFORM=saber FW_PAYLOAD_PATH=../u-boot/u-boot-dtb.bin
