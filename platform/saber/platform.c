@@ -18,14 +18,12 @@
 #include <sbi_utils/sys/clint.h>
 
 
-
+#include "saber_tv.h"
 
 #define SABER_PLIC_ADDR            0x20000000
 #define SABER_TV_ADDR              0x10003000
 #define SABER_CLINT_ADDR           0x10004000
 #define SABER_UART_ADDR            0x10005000
-
-#include "saber_tv.h"
 
 #define SABER_PLIC_NUM_SOURCES     3
 #define SABER_HART_COUNT           1
@@ -44,6 +42,21 @@ static struct clint_data clint = {
   .hart_count = SABER_HART_COUNT,
   .has_64bit_mmio = FALSE,
 };
+
+struct saber_platdata {
+  struct saber_tv_device* tv;
+};
+
+
+// Device data
+struct saber_tv_device saber_tv;
+
+// Platform data
+static struct saber_platdata platdata = {
+  .tv = &saber_tv
+};
+
+
 
 /*
  * Platform early initialization.
@@ -66,6 +79,10 @@ static int saber_final_init(bool cold_boot)
  */
 static int saber_console_init(void)
 {
+  platdata.tv->addr = SABER_TV_ADDR;
+  platdata.tv->input_buffer = "help\n\r";
+  platdata.tv->input_index = 0;
+
   return 0;
 
   /* Example if the generic UART8250 driver is used */
@@ -78,7 +95,7 @@ static int saber_console_init(void)
  */
 static void saber_console_putc(char ch)
 {
-  saber_TV_putChar(ch);
+  _saber_tv_put_char(platdata.tv, ch);
 
   /* Example if the generic UART8250 driver is used */
   // uart8250_putc(ch);
@@ -90,7 +107,7 @@ static void saber_console_putc(char ch)
 static int saber_console_getc(void)
 {
   // return uart8250_getc();
-  return 0;
+  return _saber_tv_get_char(platdata.tv);
 }
 
 /*
