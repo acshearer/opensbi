@@ -73,3 +73,7 @@ endif
 # FW_PAYLOAD_PATH="path to next boot stage binary image file"
 # FW_PAYLOAD_FDT_PATH="path to platform flattened device tree file"
 # FW_PAYLOAD_FDT_ADDR=0x82200000
+
+FW_FDT_LOCATION=0x$(shell grep __dtb_dt_begin ../u-boot/System.map | cut -c1-8)
+
+# $(info FW_FDT_LOCATION is [${FW_FDT_LOCATION}])

@@ -74,6 +74,9 @@
 	.globl _start
 	.globl _start_warm
 _start:
+	#ifdef FW_FDT_LOCATION
+		li a1, FW_FDT_LOCATION
+	#endif
 	/* Find preferred boot HART id */
 	MOV_3R	s0, a0, s1, a1, s2, a2
 	call	fw_boot_hart
