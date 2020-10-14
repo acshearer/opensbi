@@ -1,0 +1,3 @@
+[submodule "capstone-shared-saber-spec"]
+	path = capstone-shared-saber-spec
+	url = git@github.com:acshearer/capstone-shared-saber-spec.git
