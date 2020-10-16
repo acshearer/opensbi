@@ -25,4 +25,8 @@ int fdt_serial_getc(void);
 
 int fdt_serial_init(void);
 
+int fdt_serial_init_from_name(const char* prop_name);
+
+struct fdt_serial* get_current_ftd_serial_drvier();
+
 #endif

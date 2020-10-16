@@ -54,7 +54,7 @@ int fdt_serial_getc(void)
 	return current_driver->getc();
 }
 
-int fdt_serial_init(void)
+int fdt_serial_init_from_name(const char* prop_name)
 {
 	const void *prop;
 	struct fdt_serial *drv;
@@ -65,7 +65,7 @@ int fdt_serial_init(void)
 	/* Find offset of node pointed by stdout-path */
 	coff = fdt_path_offset(fdt, "/chosen");
 	if (-1 < coff) {
-		prop = fdt_getprop(fdt, coff, "stdout-path", &len);
+		prop = fdt_getprop(fdt, coff, prop_name, &len);
 		if (prop && len)
 			noff = fdt_path_offset(fdt, prop);
 	}
@@ -110,4 +110,14 @@ int fdt_serial_init(void)
 
 done:
 	return 0;
+}
+
+int fdt_serial_init(void)
+{
+	return fdt_serial_init_from_name("stdout-path");
+}
+
+struct fdt_serial* get_current_ftd_serial_drvier()
+{
+	return current_driver;
 }

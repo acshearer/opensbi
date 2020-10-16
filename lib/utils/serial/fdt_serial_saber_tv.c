@@ -5,27 +5,14 @@
 #include <sbi/sbi_string.h>
 
 struct saber_tv_device {
-  unsigned long addr_command;
-  unsigned long addr_data;
-  int input_index;
-  char input_buffer[256];
+	unsigned long addr_command;
+	unsigned long addr_data;
 };
 
 static struct saber_tv_device device = {
     .addr_command = 0,
-    .addr_data = 0,
-    .input_index = 0,
-    .input_buffer = "",
+    .addr_data = 0
 };
-
-static int _saber_tv_next_input_char(struct saber_tv_device *device) {
-	char next;
-	next = device->input_buffer[device->input_index];
-	if(next != '\0'){
-		device->input_index++;
-	}
-	return next;
-}
 
 static void _saber_tv_set_data(struct saber_tv_device *device, u8 data) {
     *((u8*)(device->addr_data)) = data;
@@ -59,7 +46,7 @@ static void _saber_tv_new_line(struct saber_tv_device *device) {
 
 
 static int _saber_tv_get_char(struct saber_tv_device *device) {
-  return _saber_tv_next_input_char(device);
+	return 0;
 }
 
 
@@ -80,13 +67,6 @@ static void _saber_tv_put_char(struct saber_tv_device *device, char ch) {
 			break;
 	}
 }
-
-
-void saber_tv_set_input_buffer(const char* str) {
-	sbi_strcpy(device.input_buffer, str);
-    device.input_index = 0;
-};
-
 
 int serial_saber_tv_init(void *fdt, int nodeoff, const struct fdt_match *match) {
 	int rc;
