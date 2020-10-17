@@ -9,6 +9,7 @@
 #include <sbi/sbi_const.h>
 #include <sbi/sbi_platform.h>
 #include <sbi/sbi_string.h>
+#include <sbi/sbi_console.h>
 
 #include <sbi_utils/irqchip/plic.h>
 #include <sbi_utils/sys/clint.h>
@@ -20,6 +21,14 @@
 
 #include <sbi_utils/serial/multi-serial.h>
 
+#define SABER_BANNER \
+"  _____    __ ____  _____ ____\n"\
+" / ____|  /  |  _ \\|  ___|  _ \\\n"\
+"| (___   / . | |_) | |_  | |_) )\n"\
+" \\___ \\ / /| |  _ <|  _| |    /\n"\
+" ____) / __  | |_) | |___| |\\ \\\n"\
+"|_____/_/  |_|____/|_____|_| \\_\\\n"
+
 
 static int saber_early_init(bool cold_boot)
 {
@@ -28,6 +37,8 @@ static int saber_early_init(bool cold_boot)
 
 static int saber_final_init(bool cold_boot) {
     multi_input_buffer_push_str("help\n\r");
+
+    sbi_printf("\n"SABER_BANNER"\n");
 
     multi_serial_print_info();
 
