@@ -17,6 +17,7 @@ extern struct fdt_serial fdt_serial_sifive;
 extern struct fdt_serial fdt_serial_htif;
 extern struct fdt_serial fdt_serial_shakti;
 extern struct fdt_serial fdt_serial_saber_tv;
+extern struct fdt_serial fdt_serial_multi;
 
 static struct fdt_serial *serial_drivers[] = {
 	&fdt_serial_uart8250,
@@ -24,6 +25,7 @@ static struct fdt_serial *serial_drivers[] = {
 	&fdt_serial_htif,
 	&fdt_serial_shakti,
 	&fdt_serial_saber_tv,
+	&fdt_serial_multi
 };
 
 static void dummy_putc(char ch)
@@ -54,7 +56,7 @@ int fdt_serial_getc(void)
 	return current_driver->getc();
 }
 
-int fdt_serial_init_from_name(const char* prop_name)
+int fdt_serial_init(void)
 {
 	const void *prop;
 	struct fdt_serial *drv;
@@ -65,7 +67,7 @@ int fdt_serial_init_from_name(const char* prop_name)
 	/* Find offset of node pointed by stdout-path */
 	coff = fdt_path_offset(fdt, "/chosen");
 	if (-1 < coff) {
-		prop = fdt_getprop(fdt, coff, prop_name, &len);
+		prop = fdt_getprop(fdt, coff, "stdout-path", &len);
 		if (prop && len)
 			noff = fdt_path_offset(fdt, prop);
 	}
@@ -112,12 +114,18 @@ done:
 	return 0;
 }
 
-int fdt_serial_init(void)
-{
-	return fdt_serial_init_from_name("stdout-path");
-}
-
 struct fdt_serial* get_current_ftd_serial_drvier()
 {
 	return current_driver;
+}
+
+struct fdt_serial* get_ftd_serial_driver(int i)
+{
+	return serial_drivers[i];
+}
+
+
+int get_ftd_serial_driver_count()
+{
+	return array_size(serial_drivers);
 }
