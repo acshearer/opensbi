@@ -42,12 +42,6 @@ static int saber_final_init(bool cold_boot) {
 
     multi_serial_print_info();
 
-    // const char* str = "\033[31m";
-
-    // for(int i = 0; str[i]; i++){
-    //     fdt_serial_putc(str[i]);
-    // }
-
     return 0;
 }
 

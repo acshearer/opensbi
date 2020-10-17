@@ -13,10 +13,12 @@ libsbiutils-objs-y += serial/fdt_serial_shakti.o
 libsbiutils-objs-y += serial/fdt_serial_sifive.o
 libsbiutils-objs-y += serial/fdt_serial_uart8250.o
 libsbiutils-objs-y += serial/fdt_serial_saber_tv.o
+libsbiutils-objs-y += serial/fdt_serial_saber_uart.o
 libsbiutils-objs-y += serial/fdt_serial_multi.o
 
 libsbiutils-objs-y += serial/shakti-uart.o
 libsbiutils-objs-y += serial/sifive-uart.o
 libsbiutils-objs-y += serial/uart8250.o
 libsbiutils-objs-y += serial/saber-tv.o
+libsbiutils-objs-y += serial/saber-uart.o
 libsbiutils-objs-y += serial/multi-serial.o
