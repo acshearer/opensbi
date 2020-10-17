@@ -32,7 +32,7 @@ static void multi_input_buffer_push(char c) {
 }
 
 static int multi_input_buffer_pop(void) {
-    int c = -1;
+    int c = 0;
     if(multi_input_buffer_index >= 0){
         c = multi_input_buffer[multi_input_buffer_index];
         multi_input_buffer_index--;

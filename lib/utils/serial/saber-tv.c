@@ -64,7 +64,7 @@ static void _saber_tv_new_line(struct saber_tv_device *device) {
 
 
 static int _saber_tv_get_char(struct saber_tv_device *device) {
-	return -1;
+	return 0;
 }
 
 
