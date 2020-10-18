@@ -19,6 +19,7 @@ extern struct fdt_serial fdt_serial_shakti;
 extern struct fdt_serial fdt_serial_saber_tv;
 extern struct fdt_serial fdt_serial_multi;
 extern struct fdt_serial fdt_serial_saber_uart;
+extern struct fdt_serial fdt_serial_saber_ps2kb;
 
 static struct fdt_serial *serial_drivers[] = {
 	&fdt_serial_uart8250,
@@ -27,7 +28,8 @@ static struct fdt_serial *serial_drivers[] = {
 	&fdt_serial_shakti,
 	&fdt_serial_saber_tv,
 	&fdt_serial_multi,
-	&fdt_serial_saber_uart
+	&fdt_serial_saber_uart,
+	&fdt_serial_saber_ps2kb
 };
 
 static void dummy_putc(char ch)
