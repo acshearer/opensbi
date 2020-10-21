@@ -52,7 +52,7 @@ static void sbi_boot_prints(struct sbi_scratch *scratch, u32 hartid)
 	xlen = misa_xlen();
 	if (xlen < 1) {
 		sbi_printf("Error %d getting MISA XLEN\n", xlen);
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 	}
 
 	/* Platform details */
@@ -160,52 +160,52 @@ static void __noreturn init_coldboot(struct sbi_scratch *scratch, u32 hartid)
 	/* Note: This has to be first thing in coldboot init sequence */
 	rc = sbi_scratch_init(scratch);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_scratch_init");
 
 	init_count_offset = sbi_scratch_alloc_offset(__SIZEOF_POINTER__,
 						     "INIT_COUNT");
 	if (!init_count_offset)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_scratch_alloc_offset");
 
 	rc = sbi_hsm_init(scratch, hartid, TRUE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_hsm_init");
 
 	rc = sbi_platform_early_init(plat, TRUE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_platform_early_init");
 
 	rc = sbi_hart_init(scratch, hartid, TRUE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_hart_init");
 
 	rc = sbi_console_init(scratch);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_console_init");
 
 	rc = sbi_platform_irqchip_init(plat, TRUE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_platform_irqchip_init");
 
 	rc = sbi_ipi_init(scratch, TRUE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_ipi_init");
 
 	rc = sbi_tlb_init(scratch, TRUE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_tlb_init");
 
 	rc = sbi_timer_init(scratch, TRUE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_timer_init");
 
 	rc = sbi_ecall_init();
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_ecall_init");
 
 	rc = sbi_platform_final_init(plat, TRUE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang("sbi_platform_final_init");
 
 	if (!(scratch->options & SBI_SCRATCH_NO_BOOT_PRINTS))
 		sbi_boot_prints(scratch, hartid);
@@ -229,39 +229,39 @@ static void __noreturn init_warmboot(struct sbi_scratch *scratch, u32 hartid)
 	wait_for_coldboot(scratch, hartid);
 
 	if (!init_count_offset)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	rc = sbi_hsm_init(scratch, hartid, FALSE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	rc = sbi_platform_early_init(plat, FALSE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	rc = sbi_hart_init(scratch, hartid, FALSE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	rc = sbi_platform_irqchip_init(plat, FALSE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	rc = sbi_ipi_init(scratch, FALSE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	rc = sbi_tlb_init(scratch, FALSE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	rc = sbi_timer_init(scratch, FALSE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	rc = sbi_platform_final_init(plat, FALSE);
 	if (rc)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	init_count = sbi_scratch_offset_ptr(scratch, init_count_offset);
 	(*init_count)++;
@@ -293,8 +293,10 @@ void __noreturn sbi_init(struct sbi_scratch *scratch)
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	if ((SBI_HARTMASK_MAX_BITS <= hartid) ||
-	    sbi_platform_hart_invalid(plat, hartid))
-		sbi_hart_hang();
+	    sbi_platform_hart_invalid(plat, hartid)){
+		*((u32*)0x10002000) = hartid;
+		sbi_hart_hang("sbi_platform_hart_invalid");
+	}
 
 	if (atomic_xchg(&coldboot_lottery, 1) == 0)
 		coldboot = TRUE;
@@ -337,7 +339,7 @@ void __noreturn sbi_exit(struct sbi_scratch *scratch)
 	const struct sbi_platform *plat = sbi_platform_ptr(scratch);
 
 	if (sbi_platform_hart_invalid(plat, hartid))
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 
 	sbi_platform_early_exit(plat);
 

@@ -21,6 +21,10 @@
 
 #include <sbi_utils/serial/multi-serial.h>
 
+// #define STRINGIFY(s) #s
+
+#define FDT_ADDRESS STRINGIFY(FW_FDT_LOCATION)
+
 #define SABER_BANNER \
 "  _____    __ ____  _____ ____\n"\
 " / ____|  /  |  _ \\|  ___|  _ \\\n"\
@@ -36,8 +40,21 @@ static int saber_early_init(bool cold_boot)
 }
 
 static int saber_final_init(bool cold_boot) {
+    // multi_input_buffer_push_str("?\r\nbase\r\nbdinfo\r\nblkcache\r\nboot\r\nbootd\r\nbootelf\r\nbooti\r\nbootm\r\nbootvx\r\ncmp\r\nconinfo\r\ncp\r\ncrc32\r\ndm\r\necho\r\neditenv\r\nenv\r\nerase\r\nfdt\r\nflinfo\r\ngo\r\ngzwrite\r\nhelp\r\niminfo\r\nimxtract\r\nitest\r\nloadb\r\nloads\r\nloadx\r\nloady\r\nloop\r\nlzmadec\r\nmd\r\nmm\r\nmw\r\nnm\r\nprintenv\r\nprotect\r\nread\r\nrun\r\nsetenv\r\nsetexpr\r\nsf\r\nsleep\r\nsource\r\nunlz4\r\nunzip\r\nversion\r\n");
+
+    // multi_input_buffer_push_str("md 0x80080000 4\r\nmmc read 0x80080000 0x4000 0xa1ee\r\nmd 0x80080000 4\r\ngo 0x80080000\r\n");
+
     multi_input_buffer_push_str(
+        // "md 0x81000000 4\r\n"
+        // "mmc info\r\n"
+        // "fstypes\r\n"
+        // "fstype mmc 0:0\r\n"
+        // "ext4ls mmc 0:1\r\n"
+        // "ext4ls mmc 0:1\r\n"
+        // "ext4ls mmc 0:2\r\n"
         "ext4load mmc 0:1 0x81000000 /boot/uImage\r\n"
+        // "md 0x81000000 4\r\n"
+        "bootm 0x81000000 " FDT_ADDRESS " \r\n"
         "bootm 0x81000000\r\n"
     );
 

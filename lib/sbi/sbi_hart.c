@@ -434,8 +434,13 @@ int sbi_hart_init(struct sbi_scratch *scratch, u32 hartid, bool cold_boot)
 	return pmp_init(scratch, hartid);
 }
 
-void __attribute__((noreturn)) sbi_hart_hang(void)
+void __attribute__((noreturn)) sbi_hart_hang(const char* func)
 {
+	for(int i = 0; func[i] != '\0'; i++){
+		*((u32*)0x10003004) = func[i];
+		*((u32*)0x10003000) = 3;
+	}
+
 	while (1)
 		wfi();
 	__builtin_unreachable();
@@ -457,14 +462,14 @@ sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,
 		break;
 	case PRV_S:
 		if (!misa_extension('S'))
-			sbi_hart_hang();
+			sbi_hart_hang(__func__);
 		break;
 	case PRV_U:
 		if (!misa_extension('U'))
-			sbi_hart_hang();
+			sbi_hart_hang(__func__);
 		break;
 	default:
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 	}
 
 	val = csr_read(CSR_MSTATUS);

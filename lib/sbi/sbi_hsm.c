@@ -113,7 +113,7 @@ void sbi_hsm_prepare_next_jump(struct sbi_scratch *scratch, u32 hartid)
 	oldstate = atomic_cmpxchg(&hdata->state, SBI_HART_STARTING,
 				  SBI_HART_STARTED);
 	if (oldstate != SBI_HART_STARTING)
-		sbi_hart_hang();
+		sbi_hart_hang(__func__);
 }
 
 static void sbi_hsm_hart_wait(struct sbi_scratch *scratch, u32 hartid)
@@ -199,7 +199,7 @@ void __noreturn sbi_hsm_exit(struct sbi_scratch *scratch)
 fail_exit:
 	/* It should never reach here */
 	sbi_printf("ERR: Failed stop hart [%u]\n", current_hartid());
-	sbi_hart_hang();
+	sbi_hart_hang(__func__);
 }
 
 int sbi_hsm_hart_start(struct sbi_scratch *scratch, u32 hartid,

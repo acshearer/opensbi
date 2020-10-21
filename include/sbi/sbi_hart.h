@@ -49,7 +49,7 @@ bool sbi_hart_has_feature(struct sbi_scratch *scratch, unsigned long feature);
 void sbi_hart_get_features_str(struct sbi_scratch *scratch,
 			       char *features_str, int nfstr);
 
-void __attribute__((noreturn)) sbi_hart_hang(void);
+void __attribute__((noreturn)) sbi_hart_hang(const char* func);
 
 void __attribute__((noreturn))
 sbi_hart_switch_mode(unsigned long arg0, unsigned long arg1,

@@ -1,0 +1,24 @@
+{
+    "files.associations": {
+        "*.area": "cpp",
+        "typeinfo": "c",
+        "system_error": "c",
+        "chrono": "c",
+        "__bit_reference": "c",
+        "__functional_base": "c",
+        "__node_handle": "c",
+        "algorithm": "c",
+        "atomic": "c",
+        "bitset": "c",
+        "__memory": "c",
+        "functional": "c",
+        "iterator": "c",
+        "limits": "c",
+        "locale": "c",
+        "memory": "c",
+        "optional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "vector": "c"
+    }
+}

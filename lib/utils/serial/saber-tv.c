@@ -329,6 +329,13 @@ static void _saber_tv_put_char(struct saber_tv_device *device, char ch) {
 				
 				case '\r':
 					break;
+				
+				case '\b':
+					_saber_tv_run_command(device, TV_COMMAND_REVERSE);
+					int code = TV_COLORIZE(ch, device->fg_color, device->bg_color);
+					_saber_tv_set_data(device, code);
+					_saber_tv_run_command(device, TV_COMMAND_SET_CHAR);
+					break;
 
 				case 0x1b: // escape
 					device->escaping = 1;
