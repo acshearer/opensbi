@@ -54,8 +54,8 @@ static int saber_final_init(bool cold_boot) {
         // "ext4ls mmc 0:2\r\n"
         "ext4load mmc 0:1 0x81000000 /boot/uImage\r\n"
         // "md 0x81000000 4\r\n"
-        "bootm 0x81000000 " FDT_ADDRESS " \r\n"
-        "bootm 0x81000000\r\n"
+	"bootm 0x81000000 - " FDT_ADDRESS "\r\n"
+        //"bootm 0x81000000\r\n"
     );
 
     sbi_printf("\n"SABER_BANNER"\n");
