@@ -24,7 +24,7 @@
 #define SABER_BANNER \
 "  _____    __ ____  _____ ____\n"\
 " / ____|  /  |  _ \\|  ___|  _ \\\n"\
-"| (___   / . | |_) | |_  | |_) )\n"\
+"| (___   / . | |_) | |_  | |_) |\n"\
 " \\___ \\ / /| |  _ <|  _| |    /\n"\
 " ____) / __  | |_) | |___| |\\ \\\n"\
 "|_____/_/  |_|____/|_____|_| \\_\\\n"
@@ -36,7 +36,10 @@ static int saber_early_init(bool cold_boot)
 }
 
 static int saber_final_init(bool cold_boot) {
-    multi_input_buffer_push_str("help\n\r");
+    multi_input_buffer_push_str(
+        "ext4load mmc 0:1 0x81000000 /boot/uImage\r\n"
+        "bootm 0x81000000\r\n"
+    );
 
     sbi_printf("\n"SABER_BANNER"\n");
 

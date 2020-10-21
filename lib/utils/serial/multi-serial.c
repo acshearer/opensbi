@@ -6,7 +6,7 @@
 #include <sbi/sbi_string.h>
 #include <sbi/sbi_console.h>
 
-static char multi_input_buffer[256];
+static char multi_input_buffer[1024];
 static int multi_input_buffer_index = -1;
 
 static int serial_driver_count = 0;
