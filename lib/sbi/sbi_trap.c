@@ -193,6 +193,20 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
 	return 0;
 }
 
+void print_stack_trace(uint32_t stackPointer) {
+
+    sbi_printf("Stack trace:\n");
+
+    for(int i = 0; i < 256; i++) {
+        uint32_t stackValue = *((uint32_t*)stackPointer);
+        if(stackValue != 0) {
+            sbi_printf(" @%8x:%8x ", stackPointer, stackValue);
+        }
+        stackPointer += 4;
+    }
+
+}
+
 /**
  * Handle trap/interrupt
  *
@@ -216,6 +230,12 @@ void sbi_trap_handler(struct sbi_trap_regs *regs)
 	ulong mcause = csr_read(CSR_MCAUSE);
 	ulong mtval = csr_read(CSR_MTVAL), mtval2 = 0, mtinst = 0;
 	struct sbi_trap_info trap;
+
+	if (mcause != CAUSE_SUPERVISOR_ECALL) {
+		sbi_printf("SBI trap: cause: %lx, mtval: %lx, mepc: %lx\n", mcause, mtval, regs->mepc);
+		print_stack_trace(regs->sp);
+		asm volatile("ebreak");
+	}
 
 	if (misa_extension('H')) {
 		mtval2 = csr_read(CSR_MTVAL2);
