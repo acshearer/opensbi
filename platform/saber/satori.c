@@ -173,6 +173,14 @@ static void print_instruction_info(u32 instr) {
     }
 }
 
+char get_readable_char(int c){
+    if(c >= ' ' && c <= '~'){
+        return c;
+    }else{
+        return '.';
+    }
+}
+
 void saber_satori(u32 start_address) {
     int building_position = 0;
 
@@ -183,22 +191,27 @@ void saber_satori(u32 start_address) {
     while(!exit){
         sbi_printf("\033[0;0H");
         sbi_printf("Saber Satori Interface\n");
-        sbi_printf("+---------------------+\n");
+        sbi_printf("+---------------------------+\n");
         sbi_printf("| \033[32m");
         for(int i = 0; i < 8; i++){
             sbi_printf("%s%01x\033[0m", (building_position == i)?"\033[32m":"\033[0m", (start_address >> ((7-i)*4)) & 0xF);
         }
-        sbi_printf(" <- Address |\n");
-        sbi_printf("+---------------------+\n");
+        sbi_printf("                  |\n");
+        sbi_printf("+---------------------------+\n");
 
         for(int i = 0; i < 32; i++){
             u32 address = start_address + i*4;
             u32 read_data = *((u32*)address);
-            sbi_printf("| %08x:  %08x | ", address, read_data);
+            sbi_printf("| %08x:  %08x  %c%c%c%c | ", address, read_data,
+                get_readable_char((read_data >> 0) & 0xFF),
+                get_readable_char((read_data >> 8) & 0xFF),
+                get_readable_char((read_data >> 16) & 0xFF),
+                get_readable_char((read_data >> 24) & 0xFF)
+            );
             print_instruction_info(read_data);
             sbi_printf("\033[0K\n");
         }
-        sbi_printf("+---------------------+\n\n");
+        sbi_printf("+---------------------------+\n\n");
         sbi_printf("Controls\n");
         sbi_printf(" 0-f: Input address\n");
         sbi_printf(" -/+: Previous/Next 32 words\n");
