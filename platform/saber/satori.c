@@ -200,8 +200,8 @@ void saber_satori(u32 start_address) {
         }
         sbi_printf("+---------------------+\n\n");
         sbi_printf("Controls\n");
-        sbi_printf(" 0-9 a-f: Input address\n");
-        sbi_printf(" +/-: Scroll down/up\n");
+        sbi_printf(" 0-f: Input address\n");
+        sbi_printf(" -/+: Previous/Next 32 words\n");
         sbi_printf(" ctrl-d: Exit\n");
 
         int c = 0;
@@ -241,6 +241,8 @@ void saber_satori(u32 start_address) {
                             case 'B': building_position = 7; break;
                             case 'C': if(building_position < 7) building_position++; break;
                             case 'D': if(building_position > 0) building_position--; break;
+                            case 'S': start_address -= 4*32; break;
+                            case 'T': start_address += 4*32; break;
                             default: break;
                         }
                         break;

@@ -62,10 +62,12 @@ static int _saber_ps2kb_process_code(struct saber_tv_device *device, u8 prePre, 
             // handle codes like E0,__
             switch (code){
                 case 0x14: device->control_r = true; return 0;
-                case 0x75: device->waiting_char_1 = 'A'; device->waiting_char_0 = '['; return '\033';
-                case 0x72: device->waiting_char_1 = 'B'; device->waiting_char_0 = '['; return '\033';
-                case 0x74: device->waiting_char_1 = 'C'; device->waiting_char_0 = '['; return '\033';
-                case 0x6B: device->waiting_char_1 = 'D'; device->waiting_char_0 = '['; return '\033';
+                case 0x75: device->waiting_char_1 = 'A'; device->waiting_char_0 = '['; return '\033'; // Arrow up
+                case 0x72: device->waiting_char_1 = 'B'; device->waiting_char_0 = '['; return '\033'; // Arrow down
+                case 0x74: device->waiting_char_1 = 'C'; device->waiting_char_0 = '['; return '\033'; // Arrow right
+                case 0x6B: device->waiting_char_1 = 'D'; device->waiting_char_0 = '['; return '\033'; // Arrow left
+                case 0x7D: device->waiting_char_1 = 'S'; device->waiting_char_0 = '['; return '\033'; // Page up
+                case 0x7A: device->waiting_char_1 = 'T'; device->waiting_char_0 = '['; return '\033'; // Page down
                 default: return 0;
             }
             return 0;
