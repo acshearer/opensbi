@@ -13,6 +13,8 @@ struct saber_tv_device {
     bool control_l;
     bool control_r;
     bool capslock;
+    int waiting_char_0;
+    int waiting_char_1;
 };
 
 static struct saber_tv_device device = {
@@ -24,7 +26,9 @@ static struct saber_tv_device device = {
     .shift_r = 0,
     .control_l = 0,
     .control_r = 0,
-    .capslock = 0
+    .capslock = 0,
+    .waiting_char_0 = 0,
+    .waiting_char_1 = 0
 };
 
 
@@ -58,6 +62,10 @@ static int _saber_ps2kb_process_code(struct saber_tv_device *device, u8 prePre, 
             // handle codes like E0,__
             switch (code){
                 case 0x14: device->control_r = true; return 0;
+                case 0x75: device->waiting_char_1 = 'A'; device->waiting_char_0 = '['; return '\033';
+                case 0x72: device->waiting_char_1 = 'B'; device->waiting_char_0 = '['; return '\033';
+                case 0x74: device->waiting_char_1 = 'C'; device->waiting_char_0 = '['; return '\033';
+                case 0x6B: device->waiting_char_1 = 'D'; device->waiting_char_0 = '['; return '\033';
                 default: return 0;
             }
             return 0;
@@ -137,6 +145,17 @@ static int _saber_ps2kb_process_code(struct saber_tv_device *device, u8 prePre, 
 
 
 static int _saber_ps2kb_get_char(struct saber_tv_device *device) {
+    if(device->waiting_char_0){
+        int c = device->waiting_char_0;
+        device->waiting_char_0 = 0;
+        return c;
+    }
+    if(device->waiting_char_1){
+        int c = device->waiting_char_1;
+        device->waiting_char_1 = 0;
+        return c;
+    }
+
     u32 buffer = *((u32*)(device->addr_data));
     *((u32*)(device->addr_data)) = 0x00;
 

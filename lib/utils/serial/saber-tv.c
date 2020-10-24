@@ -28,21 +28,20 @@ static struct saber_tv_device device = {
 	.bg_color = 0
 };
 
-static void _saber_tv_set_data(struct saber_tv_device *device, u32 data) {
+static inline void _saber_tv_set_data(struct saber_tv_device *device, u32 data) {
     *((u32*)(device->addr_data)) = data;
 }
 
-static u32 _saber_tv_get_data(struct saber_tv_device *device) {
+static inline u32 _saber_tv_get_data(struct saber_tv_device *device) {
     return *((u32*)(device->addr_data));
 }
 
-static void _saber_tv_run_command(struct saber_tv_device *device, u32 command) {
+static inline void _saber_tv_run_command(struct saber_tv_device *device, u32 command) {
     *((u32*)(device->addr_command)) = command;
 }
 
-static void _saber_tv_put_char_with_attributes(struct saber_tv_device *device, char ch){
-	int code = TV_COLORIZE(ch, device->fg_color, device->bg_color);
-	_saber_tv_set_data(device, code);
+static inline void _saber_tv_put_char_with_attributes(struct saber_tv_device *device, char ch){
+	_saber_tv_set_data(device, TV_COLORIZE(ch, device->fg_color, device->bg_color));
 	_saber_tv_run_command(device, TV_COMMAND_PUT_CHAR);
 }
 
@@ -191,6 +190,9 @@ static void _saber_tv_put_char(struct saber_tv_device *device, char ch) {
 				switch(ch){
 					case 'A':{ // move cursor up
 						if(paramQty == 1){
+							if(param0 == 0){
+								param0 = 1;
+							}
 							_saber_tv_run_command(device, TV_COMMAND_GET_Y);
 							int y = _saber_tv_get_data(device);
 							int newY = MOD_WRAP(y - param0, TV_SCREEN_H);
@@ -205,6 +207,9 @@ static void _saber_tv_put_char(struct saber_tv_device *device, char ch) {
 					}
 					case 'B':{ // move cursor down
 						if(paramQty == 1){
+							if(param0 == 0){
+								param0 = 1;
+							}
 							_saber_tv_run_command(device, TV_COMMAND_GET_Y);
 							int y = _saber_tv_get_data(device);
 							int newY = MOD_WRAP(y + param0, TV_SCREEN_H);
@@ -219,6 +224,9 @@ static void _saber_tv_put_char(struct saber_tv_device *device, char ch) {
 					}
 					case 'C':{ // move cursor right
 						if(paramQty == 1){
+							if(param0 == 0){
+								param0 = 1;
+							}
 							_saber_tv_run_command(device, TV_COMMAND_GET_X);
 							int x = _saber_tv_get_data(device);
 							int newX = MOD_WRAP(x + param0, TV_SCREEN_W);
@@ -233,6 +241,9 @@ static void _saber_tv_put_char(struct saber_tv_device *device, char ch) {
 					}
 					case 'D':{ // move cursor left
 						if(paramQty == 1){
+							if(param0 == 0){
+								param0 = 1;
+							}
 							_saber_tv_run_command(device, TV_COMMAND_GET_X);
 							int x = _saber_tv_get_data(device);
 							int newX = MOD_WRAP(x - param0, TV_SCREEN_W);
@@ -254,6 +265,79 @@ static void _saber_tv_put_char(struct saber_tv_device *device, char ch) {
 							_saber_tv_set_data(device, newX);
 							_saber_tv_run_command(device, TV_COMMAND_SET_X);
 							device->escaping = 0;
+						}else{
+                            device->escaping = 0;
+                            _saber_tv_put_char(device, ch);
+                        }
+						break;
+					}
+					case 'J':{ // clear
+						if(paramQty == 1){
+							int x = 0;
+							int y = 0;
+							int stop_x = TV_SCREEN_W;
+							int stop_y = TV_SCREEN_H;
+							if(param0 == 0){
+								_saber_tv_run_command(device, TV_COMMAND_GET_X);
+								x = _saber_tv_get_data(device);
+								_saber_tv_run_command(device, TV_COMMAND_GET_Y);
+								y = _saber_tv_get_data(device);
+							}else if(param0 == 1){
+								_saber_tv_run_command(device, TV_COMMAND_GET_X);
+								stop_x = _saber_tv_get_data(device);
+								_saber_tv_run_command(device, TV_COMMAND_GET_Y);
+								stop_y = _saber_tv_get_data(device);
+							}else if(param0 == 2){
+								_saber_tv_set_data(device, 0);
+								_saber_tv_run_command(device, TV_COMMAND_SET_X);
+								_saber_tv_run_command(device, TV_COMMAND_SET_Y);
+							}
+
+							int code = TV_COLORIZE(0, device->fg_color, device->bg_color);
+							_saber_tv_set_data(device, code);
+							for(;y < stop_y-1; y++){
+								for(;x < TV_SCREEN_W; x++){
+									_saber_tv_run_command(device, TV_COMMAND_PUT_CHAR);
+								}
+								x = 0;
+							}
+							for(;x < stop_x; x++){
+								_saber_tv_run_command(device, TV_COMMAND_PUT_CHAR);
+							}
+						}else{
+                            device->escaping = 0;
+                            _saber_tv_put_char(device, ch);
+                        }
+						break;
+					}
+					case 'K':{ // clear line
+						if(paramQty == 1){
+							int x = 0;
+							int stop_x = TV_SCREEN_W;
+
+							_saber_tv_run_command(device, TV_COMMAND_GET_X);
+							int now_x = _saber_tv_get_data(device);
+							_saber_tv_run_command(device, TV_COMMAND_GET_Y);
+							int now_y = _saber_tv_get_data(device);
+
+							if(param0 == 0){
+								x = now_x;
+							}else if(param0 == 1){
+								stop_x = now_x;
+							}else if(param0 == 2){
+								// clear entire line
+							}
+
+							int code = TV_COLORIZE(0, device->fg_color, device->bg_color);
+							_saber_tv_set_data(device, code);
+							for(;x < stop_x; x++){
+								_saber_tv_run_command(device, TV_COMMAND_PUT_CHAR);
+							}
+							_saber_tv_set_data(device, now_x);
+							_saber_tv_run_command(device, TV_COMMAND_SET_X);
+							_saber_tv_set_data(device, now_y);
+							_saber_tv_run_command(device, TV_COMMAND_SET_Y);
+							
 						}else{
                             device->escaping = 0;
                             _saber_tv_put_char(device, ch);
