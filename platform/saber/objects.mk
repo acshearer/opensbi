@@ -6,6 +6,7 @@
 
 # Space separated list of object file names to be compiled for the platform
 platform-objs-y += platform.o
+platform-objs-y += satori.o
 
 #
 # If the platform support requires a builtin device tree file, the name of

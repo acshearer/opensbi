@@ -21,6 +21,9 @@
 
 #include <sbi_utils/serial/multi-serial.h>
 
+#include <saber/platform.h>
+#include <saber/satori.h>
+
 #define FDT_ADDRESS STRINGIFY(FW_FDT_LOCATION)
 
 #define SABER_BANNER \
@@ -38,22 +41,47 @@ static int saber_early_init(bool cold_boot)
 }
 
 static int saber_final_init(bool cold_boot) {
-    multi_input_buffer_push_str(
-        "ext4load mmc 0:1 0x81000000 /boot/uImage\r\n"
-        // "md 0x81000000 4\r\n"
-        "bootm 0x81000000 - " FDT_ADDRESS "\r\n"
-        //"bootm 0x81000000\r\n"
-    );
+    // multi_input_buffer_push_str(
+    //     "ext4load mmc 0:1 0x82100000 /boot/saber.dtb\r\n"
+    //     "ext4load mmc 0:1 0x81000000 /boot/uImage\r\n"
+    //     // "md 0x81000000 4\r\n"
+    //     "bootm 0x81000000 - 0x82100000\r\n"
+    //     //"bootm 0x81000000\r\n"
+    // );
 
     sbi_printf("\n"SABER_BANNER"\n");
 
     multi_serial_print_info();
+
+    // saber_satori(0);
 
     return 0;
 }
 
 static int saber_system_reset(u32 type) {
 	return 0;
+}
+
+void print_stack_trace(uint32_t stackPointer) {
+
+    sbi_printf("Stack trace:\n");
+
+    for(int i = 0; i < 256; i++) {
+        uint32_t stackValue = *((uint32_t*)stackPointer);
+        if(stackValue != 0) {
+            sbi_printf(" @%8x:%8x ", stackPointer, stackValue);
+        }
+        stackPointer += 4;
+    }
+
+}
+
+void saber_notify_illegal_instruction(u32 mcause, u32 mtval, u32 mepc, u32 sp) {
+    sbi_printf("SBI trap: cause: %x, mtval: %x, mepc: %x\n", mcause, mtval, mepc);
+    print_stack_trace(sp);
+    sbi_printf("Press hardware continue to start memory inspector...");
+    asm volatile("ebreak");
+    saber_satori(mepc);
 }
 
 const struct sbi_platform_operations platform_ops = {

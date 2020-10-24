@@ -18,6 +18,7 @@
 #include <sbi/sbi_misaligned_ldst.h>
 #include <sbi/sbi_timer.h>
 #include <sbi/sbi_trap.h>
+#include <saber/platform.h>
 
 static void __noreturn sbi_trap_error(const char *msg, int rc,
 				      ulong mcause, ulong mtval, ulong mtval2,
@@ -193,20 +194,6 @@ int sbi_trap_redirect(struct sbi_trap_regs *regs,
 	return 0;
 }
 
-void print_stack_trace(uint32_t stackPointer) {
-
-    sbi_printf("Stack trace:\n");
-
-    for(int i = 0; i < 256; i++) {
-        uint32_t stackValue = *((uint32_t*)stackPointer);
-        if(stackValue != 0) {
-            sbi_printf(" @%8x:%8x ", stackPointer, stackValue);
-        }
-        stackPointer += 4;
-    }
-
-}
-
 /**
  * Handle trap/interrupt
  *
@@ -231,12 +218,6 @@ void sbi_trap_handler(struct sbi_trap_regs *regs)
 	ulong mtval = csr_read(CSR_MTVAL), mtval2 = 0, mtinst = 0;
 	struct sbi_trap_info trap;
 
-	if (mcause != CAUSE_SUPERVISOR_ECALL) {
-		sbi_printf("SBI trap: cause: %lx, mtval: %lx, mepc: %lx\n", mcause, mtval, regs->mepc);
-		print_stack_trace(regs->sp);
-		asm volatile("ebreak");
-	}
-
 	if (misa_extension('H')) {
 		mtval2 = csr_read(CSR_MTVAL2);
 		mtinst = csr_read(CSR_MTINST);
@@ -260,6 +241,7 @@ void sbi_trap_handler(struct sbi_trap_regs *regs)
 
 	switch (mcause) {
 	case CAUSE_ILLEGAL_INSTRUCTION:
+		saber_notify_illegal_instruction(mcause, mtval, regs->mepc, regs->sp);
 		rc  = sbi_illegal_insn_handler(mtval, regs);
 		msg = "illegal instruction handler failed";
 		break;
