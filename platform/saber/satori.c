@@ -182,9 +182,10 @@ char get_readable_char(int c){
 }
 
 void saber_satori(u32 start_address) {
-    int building_position = 0;
 
     bool exit = 0;
+    int edit_position = 0;
+    int edit_index = 32; // 0-31 are data, 32 is address
 
     sbi_printf("\033[2J");
 
@@ -193,8 +194,12 @@ void saber_satori(u32 start_address) {
         sbi_printf("Saber Satori Interface\n");
         sbi_printf("+---------------------------+\n");
         sbi_printf("| \033[32m");
-        for(int i = 0; i < 8; i++){
-            sbi_printf("%s%01x\033[0m", (building_position == i)?"\033[32m":"\033[0m", (start_address >> ((7-i)*4)) & 0xF);
+        if(edit_index == 32){
+            for(int i = 0; i < 8; i++){
+                sbi_printf("%s%01x\033[0m", (edit_position == i)?"\033[32m":"\033[0m", (start_address >> ((7-i)*4)) & 0xF);
+            }
+        }else{
+            sbi_printf("\033[0m%08x\033[0m", start_address);
         }
         sbi_printf("                  |\n");
         sbi_printf("+---------------------------+\n");
@@ -202,7 +207,15 @@ void saber_satori(u32 start_address) {
         for(int i = 0; i < 32; i++){
             u32 address = start_address + i*4;
             u32 read_data = *((u32*)address);
-            sbi_printf("| %08x:  %08x  %c%c%c%c | ", address, read_data,
+            sbi_printf("| %08x:  ", address);
+            if(edit_index == i){
+                for(int j = 0; j < 8; j++){
+                    sbi_printf("%s%01x\033[0m", (edit_position == j)?"\033[31m":"\033[0m", (read_data >> ((7-j)*4)) & 0xF);
+                }
+            }else{
+                sbi_printf("\033[0m%08x\033[0m", read_data);
+            }
+            sbi_printf("  %c%c%c%c | ",
                 get_readable_char((read_data >> 0) & 0xFF),
                 get_readable_char((read_data >> 8) & 0xFF),
                 get_readable_char((read_data >> 16) & 0xFF),
@@ -213,9 +226,10 @@ void saber_satori(u32 start_address) {
         }
         sbi_printf("+---------------------------+\n\n");
         sbi_printf("Controls\n");
-        sbi_printf(" 0-f: Input address\n");
-        sbi_printf(" -/+: Previous/Next 32 words\n");
-        sbi_printf(" ctrl-d: Exit\n");
+        sbi_printf(" 0-9 a-f       : edit address or data\n");
+        sbi_printf(" page up/down  : scroll previous/next 32 words\n");
+        sbi_printf(" arrow up/down : select word\n");
+        sbi_printf(" ctrl-d        : exit\n");
 
         int c = 0;
         do{
@@ -242,18 +256,19 @@ void saber_satori(u32 start_address) {
             case 'F': case 'f': num = 15; break;
             case '+': case '=': start_address += 4*32; break;
             case '_': case '-': start_address -= 4*32; break;
-            case '\r': case '\n': building_position = 0; break;
-            case '\b': if(building_position > 0) building_position--; break;
+            case '\r': case '\n': edit_position = 0; break;
+            case '\b': if(edit_position > 0) edit_position--; break;
             case '\033': {
                 c = sbi_getc();
                 switch(c){
+                    case 0: edit_index = 32; break; // actually escape
                     case '[': {
                         c = sbi_getc();
                         switch(c){
-                            case 'A': building_position = 0; break;
-                            case 'B': building_position = 7; break;
-                            case 'C': if(building_position < 7) building_position++; break;
-                            case 'D': if(building_position > 0) building_position--; break;
+                            case 'A': edit_index--; break;
+                            case 'B': edit_index++; break;
+                            case 'C': if(edit_position < 7) edit_position++; break;
+                            case 'D': if(edit_position > 0) edit_position--; break;
                             case 'S': start_address -= 4*32; break;
                             case 'T': start_address += 4*32; break;
                             default: break;
@@ -267,14 +282,29 @@ void saber_satori(u32 start_address) {
             default: break;
         }
 
+        if(edit_index == 33){
+            edit_index = 0;
+        }
+        if(edit_index == -1){
+            edit_index = 32;
+        }
+
         if(num != -1){
-            int i = (7-building_position) * 4;
-            start_address = (start_address & ~(0xF << i)) | (num << i);
 
-            building_position++;
+            u32* edit_value;
+            if(edit_index == 32){
+                edit_value = &start_address;
+            }else{
+                edit_value = ((u32*)(start_address + edit_index*4));
+            }
 
-            if(building_position == 8){
-                building_position = 0;
+            int i = (7-edit_position) * 4;
+            *edit_value = (*edit_value & ~(0xF << i)) | (num << i);
+
+            edit_position++;
+
+            if(edit_position == 8){
+                edit_position = 0;
             }
         }
     }

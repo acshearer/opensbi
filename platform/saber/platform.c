@@ -77,11 +77,17 @@ void print_stack_trace(uint32_t stackPointer) {
 }
 
 void saber_notify_illegal_instruction(u32 mcause, u32 mtval, u32 mepc, u32 sp) {
-    sbi_printf("SBI trap: cause: %x, mtval: %x, mepc: %x\n", mcause, mtval, mepc);
+    sbi_printf("SBI illegal instruction: mcause: %x, mtval: %x, mepc: %x\n", mcause, mtval, mepc);
     print_stack_trace(sp);
-    sbi_printf("Press hardware continue to start memory inspector...");
-    asm volatile("ebreak");
-    saber_satori(mepc);
+    sbi_printf("\nPress escape to start memory inspector, or any other key to skip.\n");
+    int c = 0;
+    do{
+        c = sbi_getc();
+    }while(c <= 0);
+
+    if(c == 27){
+        saber_satori(mepc);
+    }
 }
 
 const struct sbi_platform_operations platform_ops = {

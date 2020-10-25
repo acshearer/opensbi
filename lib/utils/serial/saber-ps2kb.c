@@ -126,6 +126,8 @@ static int _saber_ps2kb_process_code(struct saber_tv_device *device, u8 prePre, 
                 case 0x5B: return ctrl?0x1D:(shft?'}':']');
                 case 0x66: return 8;
 
+                case 0x76: return 27; // escape
+
                 case 0x12: device->shift_l = true; return 0;
                 case 0x59: device->shift_r = true; return 0;
                 case 0x14: device->control_l = true; return 0;
