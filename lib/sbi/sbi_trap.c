@@ -241,7 +241,7 @@ void sbi_trap_handler(struct sbi_trap_regs *regs)
 
 	switch (mcause) {
 	case CAUSE_ILLEGAL_INSTRUCTION:
-		saber_notify_illegal_instruction(mcause, mtval, regs->mepc, regs->sp);
+		saber_notify_exception("Illegal Instruction", mcause, mtval, regs);
 		rc  = sbi_illegal_insn_handler(mtval, regs);
 		msg = "illegal instruction handler failed";
 		break;
@@ -258,6 +258,11 @@ void sbi_trap_handler(struct sbi_trap_regs *regs)
 		rc  = sbi_ecall_handler(regs);
 		msg = "ecall handler failed";
 		break;
+	case CAUSE_FETCH_PAGE_FAULT:
+	case CAUSE_LOAD_PAGE_FAULT:
+	case CAUSE_STORE_PAGE_FAULT:
+		saber_notify_exception("Page Fault", mcause, mtval, regs);
+		// fallthrough
 	default:
 		/* If the trap came from S or U mode, redirect it there */
 		trap.epc = regs->mepc;

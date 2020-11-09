@@ -10,6 +10,7 @@
 #include <sbi/sbi_platform.h>
 #include <sbi/sbi_string.h>
 #include <sbi/sbi_console.h>
+#include <sbi/sbi_trap.h>
 
 #include <sbi_utils/irqchip/plic.h>
 #include <sbi_utils/sys/clint.h>
@@ -35,19 +36,17 @@
 "|_____/_/  |_|____/|_____|_| \\_\\\n"
 
 
-static int saber_early_init(bool cold_boot)
-{
+static int saber_early_init(bool cold_boot) {
     return 0;
 }
 
 static int saber_final_init(bool cold_boot) {
-    // multi_input_buffer_push_str(
-    //     "ext4load mmc 0:1 0x82100000 /boot/saber.dtb\r\n"
-    //     "ext4load mmc 0:1 0x81000000 /boot/uImage\r\n"
-    //     // "md 0x81000000 4\r\n"
-    //     "bootm 0x81000000 - 0x82100000\r\n"
-    //     //"bootm 0x81000000\r\n"
-    // );
+    multi_input_buffer_push_str(
+        "setenv fdt_high 0xFFFFFFFF\r\n"
+        "ext4load mmc 0:1 0x82100000 /boot/saber.dtb\r\n"
+        "ext4load mmc 0:1 0x80400000 /boot/uImage\r\n"
+        "bootm 0x80400000 - 0x82100000"
+    );
 
     sbi_printf("\n"SABER_BANNER"\n");
 
@@ -66,7 +65,7 @@ void print_stack_trace(uint32_t stackPointer) {
 
     sbi_printf("Stack trace:\n");
 
-    for(int i = 0; i < 256; i++) {
+    for(int i = 0; i < 64; i++) {
         uint32_t stackValue = *((uint32_t*)stackPointer);
         if(stackValue != 0) {
             sbi_printf(" @%8x:%8x ", stackPointer, stackValue);
@@ -76,17 +75,21 @@ void print_stack_trace(uint32_t stackPointer) {
 
 }
 
-void saber_notify_illegal_instruction(u32 mcause, u32 mtval, u32 mepc, u32 sp) {
-    sbi_printf("SBI illegal instruction: mcause: %x, mtval: %x, mepc: %x\n", mcause, mtval, mepc);
-    print_stack_trace(sp);
-    sbi_printf("\nPress escape to start memory inspector, or any other key to skip.\n");
+void saber_notify_exception(const char* exception_name, u32 mcause, u32 mtval, struct sbi_trap_regs *regs) {
+    sbi_printf("SBI %s: mcause: %x, mtval: %x, mepc: %lx\n", exception_name, mcause, mtval, regs->mepc);
+    sbi_printf("gp: %lx, sp: %lx, tp: %lx, ra: %lx\n", regs->gp, regs->sp, regs->tp, regs->ra);
+    sbi_printf("a0 - a7: %lx, %lx, %lx, %lx, %lx, %lx, %lx, %lx\n", regs->a0, regs->a1, regs->a2, regs->a3, regs->a4, regs->a5, regs->a6, regs->a7);
+    sbi_printf("s0 - s11: %lx, %lx, %lx, %lx, %lx, %lx, %lx, %lx, %lx, %lx, %lx, %lx\n", regs->s0, regs->s1, regs->s2, regs->s3, regs->s4, regs->s5, regs->s6, regs->s7, regs->s8, regs->s9, regs->s10, regs->s11);
+    sbi_printf("t0 - t6: %lx, %lx, %lx, %lx, %lx, %lx, %lx\n", regs->t0, regs->t1, regs->t2, regs->t3, regs->t4, regs->t5, regs->t6);
+    print_stack_trace(regs->sp);
+    sbi_printf("\nPress escape to start satori memory inspector, or any other key to skip...\n");
     int c = 0;
     do{
         c = sbi_getc();
     }while(c <= 0);
 
     if(c == 27){
-        saber_satori(mepc);
+        saber_satori(regs->mepc);
     }
 }
 
