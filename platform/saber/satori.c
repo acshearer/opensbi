@@ -191,10 +191,11 @@ u32 perform_search(u32 from, u32 target) {
 }
 
 u32 search(u32 from) {
-    sbi_printf("Search, please enter a 32 bit number to find: \n");
+    sbi_printf("\nSearch\nPlease enter a 32 bit number to search for then press enter: \n");
     sbi_printf("> ________\033[8D");
     u32 query = 0;
     int count = 0;
+    bool done = false;
     do{
         int c = 0;
         do{
@@ -219,6 +220,11 @@ u32 search(u32 from) {
             case 'D': case 'd': num = 13; break;
             case 'E': case 'e': num = 14; break;
             case 'F': case 'f': num = 15; break;
+            case '\r': case '\n':
+                if(count == 8){
+                    done = true;
+                }
+                break;
             case '\b': 
                 if(count > 0){
                     query/=16; count--; sbi_printf("\033[1D_\033[1D");
@@ -228,14 +234,14 @@ u32 search(u32 from) {
                 
             default: num = -1;
         }
-        if(num >= 0){
+        if(num >= 0 && count < 8){
             query = query*16 + num;
             count++;
             sbi_printf("%c", c);
         }
-    }while(count < 8);
+    }while(count < 8 || !done);
     u32 found = perform_search(from, query);
-    sbi_printf("Search complete: %08x:  %08x\n", found, *(u32*)found);
+    sbi_printf("Search complete (%08x:  %08x)\n", found, *(u32*)found);
     return found;
 }
 
