@@ -181,6 +181,64 @@ char get_readable_char(int c){
     }
 }
 
+u32 perform_search(u32 from, u32 target) {
+    sbi_printf("\nSearching for %08x starting at address %08x...\n", target, from);
+    u32 address = from + 4;
+    while(*((u32*)address) != target && address < 0x84000000){
+        address += 4;
+    }
+    return address;
+}
+
+u32 search(u32 from) {
+    sbi_printf("Search, please enter a 32 bit number to find: \n");
+    sbi_printf("> ________\033[8D");
+    u32 query = 0;
+    int count = 0;
+    do{
+        int c = 0;
+        do{
+            c = sbi_getc();
+        }while(c <= 0);
+        
+        int num = -1;
+        switch(c){
+            case '0': num = 0; break;
+            case '1': num = 1; break;
+            case '2': num = 2; break;
+            case '3': num = 3; break;
+            case '4': num = 4; break;
+            case '5': num = 5; break;
+            case '6': num = 6; break;
+            case '7': num = 7; break;
+            case '8': num = 8; break;
+            case '9': num = 9; break;
+            case 'A': case 'a': num = 10; break;
+            case 'B': case 'b': num = 11; break;
+            case 'C': case 'c': num = 12; break;
+            case 'D': case 'd': num = 13; break;
+            case 'E': case 'e': num = 14; break;
+            case 'F': case 'f': num = 15; break;
+            case '\b': 
+                if(count > 0){
+                    query/=16; count--; sbi_printf("\033[1D_\033[1D");
+                }
+                break;
+            case 0x03: case 0x04: sbi_printf("Search canceled.\n"); return from;
+                
+            default: num = -1;
+        }
+        if(num >= 0){
+            query = query*16 + num;
+            count++;
+            sbi_printf("%c", c);
+        }
+    }while(count < 8);
+    u32 found = perform_search(from, query);
+    sbi_printf("Search complete: %08x:  %08x\n", found, *(u32*)found);
+    return found;
+}
+
 void saber_satori(u32 start_address) {
 
     bool exit = 0;
@@ -229,6 +287,7 @@ void saber_satori(u32 start_address) {
         sbi_printf(" 0-9 a-f       : edit address or data\n");
         sbi_printf(" page up/down  : scroll previous/next 32 words\n");
         sbi_printf(" arrow up/down : select word\n");
+        sbi_printf(" /             : search\n");
         sbi_printf(" ctrl-d        : exit\n");
 
         int c = 0;
@@ -258,6 +317,7 @@ void saber_satori(u32 start_address) {
             case '_': case '-': start_address -= 4*32; break;
             case '\r': case '\n': edit_position = 0; break;
             case '\b': if(edit_position > 0) edit_position--; break;
+            case '/': start_address = search(start_address); break;
             case '\033': {
                 c = sbi_getc();
                 switch(c){
