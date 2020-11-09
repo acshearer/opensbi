@@ -42,10 +42,10 @@ static int saber_early_init(bool cold_boot) {
 
 static int saber_final_init(bool cold_boot) {
     multi_input_buffer_push_str(
-        "setenv fdt_high 0xFFFFFFFF\r\n"
-        "ext4load mmc 0:1 0x82100000 /boot/saber.dtb\r\n"
-        "ext4load mmc 0:1 0x80400000 /boot/uImage\r\n"
-        "bootm 0x80400000 - 0x82100000"
+        "setenv fdt_high 0xFFFFFFFF\n"
+        "ext4load mmc 0:1 0x82100000 /boot/saber.dtb\n"
+        "ext4load mmc 0:1 0x80400000 /boot/uImage\n"
+        "bootm 0x80400000 - 0x82100000\n"
     );
 
     sbi_printf("\n"SABER_BANNER"\n");
