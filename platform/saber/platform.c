@@ -40,6 +40,11 @@ static int saber_early_init(bool cold_boot) {
     return 0;
 }
 
+void setBreakpoint(u32 index, u32 address) {
+    *((u32*)(0x10002100)) |= 1 << index; // enable breakpoint
+    *((u32*)(0x10002000 + (4*index))) = address; // set breakpint
+}
+
 static int saber_final_init(bool cold_boot) {
     multi_input_buffer_push_str(
         "setenv fdt_high 0xFFFFFFFF\n"
@@ -51,6 +56,8 @@ static int saber_final_init(bool cold_boot) {
     sbi_printf("\n"SABER_BANNER"\n");
 
     multi_serial_print_info();
+
+    // setBreakpoint(0, 0x80400000);
 
     // saber_satori(0);
 
