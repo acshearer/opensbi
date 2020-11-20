@@ -14,9 +14,9 @@
 #include <sbi/sbi_hartmask.h>
 #include <sbi_utils/sys/clint.h>
 
-#define CLINT_IPI_OFF		0
-#define CLINT_TIME_CMP_OFF	0x4000
-#define CLINT_TIME_VAL_OFF	0xbff8
+#define CLINT_IPI_OFF		0xc
+#define CLINT_TIME_VAL_OFF	0x0
+#define CLINT_TIME_CMP_OFF	0x8
 
 static struct clint_data *clint_ipi_hartid2data[SBI_HARTMASK_MAX_BITS];
 
