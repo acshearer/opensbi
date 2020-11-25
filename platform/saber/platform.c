@@ -35,6 +35,12 @@
 " ____) / __  | |_) | |___| |\\ \\\n"\
 "|_____/_/  |_|____/|_____|_| \\_\\\n"
 
+static struct clint_data clint = {
+	.addr = 0x10004000,
+	.first_hartid = 0,
+	.hart_count = 1,
+	.has_64bit_mmio = true,
+};
 
 static int saber_early_init(bool cold_boot) {
     return 0;
@@ -62,6 +68,19 @@ static int saber_final_init(bool cold_boot) {
     // saber_satori(0);
 
     return 0;
+}
+
+static int saber_timer_init(bool cold_boot)
+{
+	int rc;
+
+	if (cold_boot) {
+		rc = clint_cold_timer_init(&clint, NULL);
+		if (rc)
+			return rc;
+	}
+
+	return clint_warm_timer_init();
 }
 
 static int saber_system_reset(u32 type) {
@@ -114,10 +133,10 @@ const struct sbi_platform_operations platform_ops = {
     .ipi_clear             = fdt_ipi_clear,
     .ipi_init              = fdt_ipi_init,
     
-    .timer_value           = fdt_timer_value,
-    .timer_event_start     = fdt_timer_event_start,
-    .timer_event_stop      = fdt_timer_event_stop,
-    .timer_init            = fdt_timer_init,
+    .timer_value           = clint_timer_value,
+    .timer_event_start     = clint_timer_event_start,
+    .timer_event_stop      = clint_timer_event_stop,
+    .timer_init            = saber_timer_init,
 
     .system_reset          = saber_system_reset
 };
